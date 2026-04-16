@@ -16,6 +16,9 @@ env/
 .env.local
 .env.*.local
 
+# Claude Code
+.claude/
+
 # Editor
 .vscode/
 .idea/
