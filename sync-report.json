@@ -1,0 +1,28 @@
+{
+  "repo": "devOMAR-2/pomo",
+  "project": {
+    "owner": "devOMAR-2",
+    "number": 2,
+    "id": "PVT_kwHOBYzAJ84BU2Tx"
+  },
+  "sprint": {
+    "name": "Sprint 1 - v1.0 MVP",
+    "start_date": "2026-04-16",
+    "end_date": "2026-04-24"
+  },
+  "mapping": {
+    "T-001": 1,
+    "T-002": 2,
+    "T-003": 3,
+    "T-004": 4,
+    "T-005": 5,
+    "T-006": 6,
+    "T-007": 7,
+    "T-008": 8,
+    "T-009": 9,
+    "T-010": 10,
+    "T-011": 11,
+    "T-012": 12,
+    "T-013": 13
+  }
+}
