@@ -21,6 +21,9 @@ permissions:
   pull-requests: write   # open PRs
   issues: write          # comment, transition
   id-token: write        # for OIDC if you wire it up
+  # Note: the built-in GITHUB_TOKEN does NOT grant Projects v2 access.
+  # The work job uses secrets.PROJECT_TOKEN (a fine-grained/classic PAT with
+  # 'project' + 'workflow' scopes) instead — see the Run Claude Code step.
 
 jobs:
   resolve:
@@ -51,6 +54,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # Check out using the PAT so subsequent `git push` calls from inside
+          # Claude Code can write to .github/workflows/ (requires 'workflow' scope).
+          token: ${{ secrets.PROJECT_TOKEN }}
 
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
@@ -75,4 +81,7 @@ jobs:
             --max-turns 40
             --allowed-tools Bash,Edit,Read,Write,Grep,Glob
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Use the fine-grained PAT (with project + workflow scopes) rather than
+          # the built-in GITHUB_TOKEN, so gh api can talk to Projects v2 and the
+          # git push can touch .github/workflows/.
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
