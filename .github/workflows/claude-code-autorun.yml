@@ -1,0 +1,78 @@
+name: Claude Code — autorun on Ready
+
+# Fires when a Project v2 item changes status. We only act on "Ready" -> work it.
+# This is intentionally opt-in. If you'd rather drive Claude Code manually on
+# your machine, just delete this file.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ticket_key:
+        description: "Ticket key to work (e.g. T-003)"
+        required: true
+        type: string
+
+  # Comment trigger — reviewer types `/claude work T-003` on an issue to run it.
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write        # branch, commit, push
+  pull-requests: write   # open PRs
+  issues: write          # comment, transition
+  id-token: write        # for OIDC if you wire it up
+
+jobs:
+  resolve:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' &&
+       startsWith(github.event.comment.body, '/claude work '))
+    runs-on: ubuntu-latest
+    outputs:
+      ticket: ${{ steps.pick.outputs.ticket }}
+    steps:
+      - id: pick
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "ticket=${{ inputs.ticket_key }}" >> "$GITHUB_OUTPUT"
+          else
+            # Parse "/claude work T-003" from the comment body
+            key=$(echo "${{ github.event.comment.body }}" | awk '{print $3}' | tr -d '[:space:]')
+            [[ "$key" =~ ^T-[0-9]{3}$ ]] || { echo "Bad ticket key: $key"; exit 1; }
+            echo "ticket=$key" >> "$GITHUB_OUTPUT"
+          fi
+
+  work:
+    needs: resolve
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+
+      - name: Install dev env
+        run: |
+          python -m pip install -U pip
+          pip install -e ".[dev]" || true  # fine if pyproject not present yet
+
+      - name: Install gh + jq (usually preinstalled, but be safe)
+        run: |
+          command -v gh >/dev/null || sudo apt-get install -y gh
+          command -v jq >/dev/null || sudo apt-get install -y jq
+
+      - name: Run Claude Code
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # The slash command handles everything: branch, code, test, push, PR, transition.
+          prompt: "/work-ticket ${{ needs.resolve.outputs.ticket }}"
+          claude_args: |
+            --max-turns 40
+            --allowed-tools Bash,Edit,Read,Write,Grep,Glob
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
