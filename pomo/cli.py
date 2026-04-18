@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from typing import Any
 
 import typer
@@ -16,7 +16,12 @@ from pomo.storage.db import get_connection
 from pomo.storage.models import Session
 from pomo.storage.repository import SessionRepository
 from pomo.ui.render import Renderer
-from pomo.ui.tables import render_history_table
+from pomo.ui.tables import (
+    render_history_table,
+    render_tag_breakdown,
+    render_today_summary,
+    render_week_bars,
+)
 
 app = typer.Typer(
     name="pomo",
@@ -224,6 +229,45 @@ def _display_cycle(timer: Timer, config: Config) -> int:
     if timer.state is State.WORK:
         return (n % m) + 1
     return n % m or m
+
+
+# --------------------------------------------------------------------------
+# pomo stats
+# --------------------------------------------------------------------------
+
+
+@app.command("stats")
+def stats(
+    week: bool = typer.Option(False, "--week", help="Show a 7-day ASCII bar chart grouped by day."),
+) -> None:
+    """Summarise today's completed work, optionally with a 7-day chart."""
+    today = date.today()
+    today_str = today.isoformat()
+    tomorrow_str = (today + timedelta(days=1)).isoformat()
+
+    conn = get_connection()
+    try:
+        repo = SessionRepository(conn)
+        today_sessions = repo.list_between(today_str, tomorrow_str)
+        completed_work = [s for s in today_sessions if s.kind == "work" and s.completed]
+        work_count = len(completed_work)
+        focus_minutes = sum(s.duration_s for s in completed_work) // 60
+        tag_rows = repo.aggregate_by_tag(today_str, tomorrow_str)
+
+        week_rows = None
+        if week:
+            start = (today - timedelta(days=6)).isoformat()
+            week_rows = repo.aggregate_by_day(start, today_str)
+    finally:
+        conn.close()
+
+    console = Console()
+    console.print(
+        render_today_summary(day=today_str, work_count=work_count, focus_minutes=focus_minutes)
+    )
+    console.print(render_tag_breakdown(tag_rows))
+    if week_rows is not None:
+        console.print(render_week_bars(week_rows))
 
 
 if __name__ == "__main__":  # pragma: no cover
