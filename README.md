@@ -1,7 +1,7 @@
 # pomo
 
 [![CI](https://github.com/devOMAR-2/pomo/actions/workflows/ci.yml/badge.svg)](https://github.com/devOMAR-2/pomo/actions/workflows/ci.yml)
-[![PyPI version](https://img.shields.io/pypi/v/pomo-devOMAR.svg)](https://pypi.org/project/pomo-devOMAR/)
+[![TestPyPI version](https://img.shields.io/pypi/v/pomo-devOMAR?pypiBaseUrl=https://test.pypi.org&label=TestPyPI)](https://test.pypi.org/project/pomo-devOMAR/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](#license)
 
 A command-line Pomodoro timer with SQLite session logging. Run work/break
