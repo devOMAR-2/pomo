@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import datetime, timedelta
 from io import StringIO
 from pathlib import Path
@@ -17,6 +18,13 @@ from pomo.storage.db import get_connection
 from pomo.storage.repository import SessionRepository
 
 runner = CliRunner()
+
+_ANSI_RE = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]")
+
+
+def _strip_ansi(s: str) -> str:
+    """Remove ANSI SGR/CSI sequences Rich injects into Typer's --help output."""
+    return _ANSI_RE.sub("", s)
 
 
 # --------------------------------------------------------------------------
@@ -88,10 +96,20 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> SessionRepository:
 
 class TestFlagParsing:
     def test_help_mentions_all_documented_flags(self) -> None:
-        result = runner.invoke(app, ["start", "--help"])
+        # Typer renders --help via Rich, which injects ANSI SGR codes and
+        # wraps at the terminal width. Force a wide no-color terminal so
+        # flag names don't get hyphenated across lines, and strip any
+        # remaining escapes before asserting.
+        result = runner.invoke(
+            app,
+            ["start", "--help"],
+            color=False,
+            env={"COLUMNS": "200", "NO_COLOR": "1", "TERM": "dumb"},
+        )
         assert result.exit_code == 0, result.stdout
+        cleaned = _strip_ansi(result.stdout)
         for flag in ("--work", "--break", "--long-break", "--cycles", "--tag", "--no-sound"):
-            assert flag in result.stdout, f"--help is missing {flag}"
+            assert flag in cleaned, f"--help is missing {flag}"
 
     def test_invalid_work_value_rejected(self) -> None:
         # Non-positive --work should be rejected by Typer's min constraint.
