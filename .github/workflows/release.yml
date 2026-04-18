@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/pomo
+      url: https://test.pypi.org/p/pomo-devOMAR
 
     steps:
       - name: Checkout
