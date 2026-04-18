@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: write   # required to create a GitHub Release
-  id-token: write   # required for PyPI trusted publishing via OIDC
 
 jobs:
   build-and-publish:
@@ -48,8 +47,6 @@ jobs:
         with:
           repository-url: https://test.pypi.org/legacy/
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-          # Configure the trusted publisher on TestPyPI first:
-          # https://docs.pypi.org/trusted-publishers/
 
       - name: Create GitHub Release
         env:
