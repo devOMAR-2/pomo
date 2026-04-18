@@ -47,7 +47,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
-          # No `password:` — trusted publishing uses OIDC via id-token.
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
           # Configure the trusted publisher on TestPyPI first:
           # https://docs.pypi.org/trusted-publishers/
 
