@@ -1,7 +1,7 @@
 # pomo
 
 [![CI](https://github.com/devOMAR-2/pomo/actions/workflows/ci.yml/badge.svg)](https://github.com/devOMAR-2/pomo/actions/workflows/ci.yml)
-[![PyPI version](https://img.shields.io/pypi/v/pomo.svg)](https://pypi.org/project/pomo/)
+[![PyPI version](https://img.shields.io/pypi/v/pomo-devOMAR.svg)](https://pypi.org/project/pomo-devOMAR/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](#license)
 
 A command-line Pomodoro timer with SQLite session logging. Run work/break
@@ -15,8 +15,11 @@ stats — all local, no accounts, no sync.
 Once published:
 
 ```bash
-pip install pomo
+pip install pomo-devOMAR
 ```
+
+The distribution name on PyPI is `pomo-devOMAR`; the installed command
+and Python import name are both still `pomo`.
 
 From source:
 

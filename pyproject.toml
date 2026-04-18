@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "pomo"
+name = "pomo-devOMAR"
 version = "0.1.0"
 description = "Command-line Pomodoro timer with SQLite session logging."
 readme = "README.md"
